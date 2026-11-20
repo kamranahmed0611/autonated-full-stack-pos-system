@@ -146,7 +146,12 @@ export default function Reports() {
                 {data.topProducts.map((p, i) => (
                   <tr key={i}>
                     <td><span style={{ color: 'var(--amber)', fontFamily: 'var(--font-mono)', fontWeight: 600 }}>#{i+1}</span></td>
-                    <td><span>{p.icon} {p.name}</span></td>
+                    <td>
+                      <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                        <i className="ti ti-package" style={{ color: 'var(--amber)', fontSize: 13 }} />
+                        {p.name}
+                      </span>
+                    </td>
                     <td><span className="mono">{p.units}</span></td>
                     <td><span className="mono fw-500" style={{ color: 'var(--amber)' }}>{fmt(p.revenue)}</span></td>
                   </tr>

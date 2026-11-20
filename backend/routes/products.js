@@ -44,7 +44,10 @@ router.get('/barcode/:barcode', auth(), (req, res) => {
 
 // CREATE product
 router.post('/', auth(['admin', 'manager']), (req, res) => {
-  const { barcode, name, category_id, price, cost, tax_rate, stock, min_stock, unit, icon } = req.body;
+  const {
+    barcode, name, category_id, price, cost, tax_rate, stock, min_stock, unit, icon,
+    sku, is_weighable = 0, is_loose = 0, base_unit = '', sale_unit = '', unit_conversion_ratio = 1.0, subunit_sale_price = 0
+  } = req.body;
   if (!barcode || !name || !category_id || price === undefined) {
     return res.status(400).json({ error: 'barcode, name, category_id, price are required' });
   }
@@ -56,20 +59,28 @@ router.post('/', auth(['admin', 'manager']), (req, res) => {
 
   const id = uuidv4();
   db.prepare(`
-    INSERT INTO products (id,barcode,name,category_id,price,cost,tax_rate,stock,min_stock,unit,icon)
-    VALUES (?,?,?,?,?,?,?,?,?,?,?)
-  `).run(id, barcode, name, category_id, price, cost??0, tax_rate??17, stock??0, min_stock??5, unit||'pcs', icon||'📦');
+    INSERT INTO products (
+      id, sku, barcode, name, category_id, price, cost, tax_rate, stock, min_stock, unit, icon,
+      is_weighable, is_loose, base_unit, sale_unit, unit_conversion_ratio, subunit_sale_price
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+  `).run(
+    id, sku || null, barcode, name, category_id, price, cost ?? 0, tax_rate ?? 0, stock ?? 0, min_stock ?? 5, unit || 'pcs', icon || '',
+    is_weighable ? 1 : 0, is_loose ? 1 : 0, base_unit || '', sale_unit || '', unit_conversion_ratio || 1.0, subunit_sale_price || 0
+  );
 
-  if ((stock||0) > 0) {
+  if ((stock || 0) > 0) {
     db.prepare('INSERT INTO stock_movements (id,product_id,type,qty,note,created_by) VALUES (?,?,?,?,?,?)')
-      .run(uuidv4(), id, 'opening', stock||0, 'Opening stock', req.user.id);
+      .run(uuidv4(), id, 'opening', stock || 0, 'Opening stock', req.user.id);
   }
   res.status(201).json({ id, message: 'Product created' });
 });
 
 // UPDATE product
 router.put('/:id', auth(['admin', 'manager']), (req, res) => {
-  const { barcode, name, category_id, price, cost, tax_rate, min_stock, unit, icon, active } = req.body;
+  const {
+    barcode, name, category_id, price, cost, tax_rate, min_stock, unit, icon, active,
+    sku, is_weighable, is_loose, base_unit, sale_unit, unit_conversion_ratio, subunit_sale_price
+  } = req.body;
   
   if (barcode) {
     const existing = db.prepare('SELECT id FROM products WHERE barcode = ? AND id != ?').get(barcode, req.params.id);
@@ -79,9 +90,30 @@ router.put('/:id', auth(['admin', 'manager']), (req, res) => {
   }
 
   db.prepare(`
-    UPDATE products SET barcode=COALESCE(?,barcode),name=?,category_id=?,price=?,cost=?,tax_rate=?,min_stock=?,unit=?,icon=?,active=?,updated_at=datetime('now')
-    WHERE id=?
-  `).run(barcode, name, category_id, price, cost??0, tax_rate??17, min_stock??5, unit||'pcs', icon||'📦', active??1, req.params.id);
+    UPDATE products SET
+      barcode = COALESCE(?, barcode),
+      name = ?,
+      category_id = ?,
+      price = ?,
+      cost = ?,
+      tax_rate = ?,
+      min_stock = ?,
+      unit = ?,
+      icon = ?,
+      active = ?,
+      sku = COALESCE(?, sku),
+      is_weighable = COALESCE(?, is_weighable),
+      is_loose = COALESCE(?, is_loose),
+      base_unit = COALESCE(?, base_unit),
+      sale_unit = COALESCE(?, sale_unit),
+      unit_conversion_ratio = COALESCE(?, unit_conversion_ratio),
+      subunit_sale_price = COALESCE(?, subunit_sale_price),
+      updated_at = datetime('now')
+    WHERE id = ?
+  `).run(
+    barcode, name, category_id, price, cost ?? 0, tax_rate ?? 0, min_stock ?? 5, unit || 'pcs', icon || '', active ?? 1,
+    sku, is_weighable, is_loose, base_unit, sale_unit, unit_conversion_ratio, subunit_sale_price, req.params.id
+  );
   res.json({ success: true });
 });
 

@@ -6,6 +6,7 @@ const NAV = [
   { to: '/',           icon: 'ti-cash-register', label: 'POS Terminal',  roles: ['admin','cashier','manager'] },
   { to: '/inventory',  icon: 'ti-packages',       label: 'Inventory',     roles: ['admin','manager'] },
   { to: '/customers',  icon: 'ti-users',          label: 'Customers',     roles: ['admin','cashier','manager'] },
+  { to: '/suppliers',  icon: 'ti-truck-delivery', label: 'Suppliers',     roles: ['admin','manager'] },
   { to: '/reports',    icon: 'ti-chart-bar',      label: 'Reports',       roles: ['admin','manager'] },
   { to: '/settings',   icon: 'ti-settings',       label: 'Settings',      roles: ['admin'] },
 ]

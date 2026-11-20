@@ -14,6 +14,8 @@ const authRoutes = require('./routes/auth');
 const productRoutes = require('./routes/products');
 const transactionRoutes = require('./routes/transactions');
 const reportRoutes = require('./routes/reports');
+const shiftsRoutes = require('./routes/shifts');
+const supplierRoutes = require('./routes/suppliers');
 const { catRouter, custRouter, userRouter, settingsRouter } = require('./routes/misc');
 
 const app = express();
@@ -32,10 +34,12 @@ app.use(express.json({ limit: '10mb' }));
 app.use(rateLimit({ windowMs: 15 * 60 * 1000, max: 200 }));
 
 // Keep stricter limits on auth endpoints
-app.use('/api/auth', rateLimit({ windowMs: 15 * 60 * 1000, max: 20 }), authRoutes);
+app.use('/api/auth', rateLimit({ windowMs: 15 * 60 * 1000, max: 50 }), authRoutes);
 app.use('/api/products', productRoutes);
 app.use('/api/transactions', transactionRoutes);
 app.use('/api/reports', reportRoutes);
+app.use('/api/shifts', shiftsRoutes);
+app.use('/api/suppliers', supplierRoutes);
 app.use('/api/categories', catRouter);
 app.use('/api/customers', custRouter);
 app.use('/api/users', userRouter);
@@ -54,7 +58,7 @@ app.use((err, req, res, next) => {
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
-  console.log(`\n🏪 SuperMart POS Backend running on http://localhost:${PORT}`);
+  console.log(`\n[SERVER] SuperMart POS Backend running on http://localhost:${PORT}`);
   console.log(`   Environment: ${process.env.NODE_ENV || 'development'}`);
   console.log(`   Database: ${process.env.DB_PATH || './db/supermart.db'}`);
 });

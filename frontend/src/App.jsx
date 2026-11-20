@@ -5,6 +5,7 @@ import Login from './pages/Login'
 import POSTerminal from './components/POS/POSTerminal'
 import Inventory from './components/Inventory/Inventory'
 import Customers from './components/Customers/Customers'
+import Suppliers from './components/Suppliers/Suppliers'
 import Reports from './components/Reports/Reports'
 import Settings from './components/Settings/Settings'
 
@@ -35,6 +36,12 @@ export default function App() {
       <Route path="/customers" element={
         <ProtectedRoute roles={['admin','cashier','manager']}>
           <Customers />
+        </ProtectedRoute>
+      } />
+
+      <Route path="/suppliers" element={
+        <ProtectedRoute roles={['admin','manager']}>
+          <Suppliers />
         </ProtectedRoute>
       } />
 

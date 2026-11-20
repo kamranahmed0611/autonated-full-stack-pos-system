@@ -1,7 +1,7 @@
 {
-  "name": "supermart-pos",
+  "name": "automated-full-stack-pos-system",
   "version": "1.0.0",
-  "description": "SuperMart POS — Full-stack billing system",
+  "description": "Automated Full Stack POS System — Modern Retail & Mart Billing Engine",
   "scripts": {
     "install:all": "cd backend && npm install && cd ../frontend && npm install",
     "seed": "cd backend && npm run seed",

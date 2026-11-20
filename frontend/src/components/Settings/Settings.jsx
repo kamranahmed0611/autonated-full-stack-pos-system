@@ -67,9 +67,12 @@ export default function Settings() {
                 ['store_name', 'Store Name', 'text'],
                 ['store_address', 'Address', 'text'],
                 ['store_phone', 'Phone Number', 'tel'],
+                ['whatsapp_number', 'WhatsApp Notification Number', 'tel'],
                 ['store_email', 'Email', 'email'],
                 ['currency', 'Currency Symbol', 'text'],
                 ['tax_label', 'Tax Label (e.g. GST)', 'text'],
+                ['default_tax_rate', 'Default Tax Rate %', 'number'],
+                ['cash_rounding_nearest', 'Cash Rounding Nearest (e.g. 5 for PKR)', 'number'],
               ].map(([key, label, type]) => (
                 <div key={key} style={styles.field}>
                   <label style={styles.fieldLabel}>{label}</label>
@@ -78,6 +81,19 @@ export default function Settings() {
                     onChange={e => setSettings(p => ({ ...p, [key]: e.target.value }))} />
                 </div>
               ))}
+              <div style={styles.field}>
+                <label style={styles.fieldLabel}>Master Tax Switch</label>
+                <label style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', marginTop: 4 }}>
+                  <input
+                    type="checkbox"
+                    checked={settings.tax_enabled === '1' || settings.tax_enabled === 1}
+                    onChange={e => setSettings(p => ({ ...p, tax_enabled: e.target.checked ? '1' : '0' }))}
+                  />
+                  <span style={{ fontSize: 13, color: 'var(--text-secondary)' }}>
+                    {settings.tax_enabled === '1' || settings.tax_enabled === 1 ? 'Tax Enabled on Checkout' : 'Tax Disabled (0% applied)'}
+                  </span>
+                </label>
+              </div>
               <div style={styles.field}>
                 <label style={styles.fieldLabel}>Receipt Footer Message</label>
                 <textarea className="input" rows={3}
@@ -146,7 +162,9 @@ export default function Settings() {
                 {categories.map(c => (
                   <div key={c.id} style={{ ...styles.catCard, borderColor: c.color + '40' }}
                     onClick={() => setCatModal(c)}>
-                    <span style={{ fontSize: 24 }}>{c.icon}</span>
+                    <div style={{ width: 28, height: 28, borderRadius: 6, background: (c.color || '#f59e0b') + '18', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      <i className="ti ti-tag" style={{ color: c.color || '#f59e0b', fontSize: 14 }} />
+                    </div>
                     <span style={{ fontWeight: 500, fontSize: 13 }}>{c.name}</span>
                     <span className="badge" style={{ background: c.color + '20', color: c.color, fontSize: 10 }}>Edit</span>
                   </div>
@@ -223,7 +241,7 @@ function UserModal({ user, onClose, onSave }) {
 
 function CatModal({ cat, onClose, onSave }) {
   const isEdit = !!cat?.id
-  const [form, setForm] = useState({ name: cat?.name || '', icon: cat?.icon || '📦', color: cat?.color || '#f59e0b' })
+  const [form, setForm] = useState({ name: cat?.name || '', icon: cat?.icon || '', color: cat?.color || '#f59e0b' })
   const [saving, setSaving] = useState(false)
   const f = (k, v) => setForm(p => ({ ...p, [k]: v }))
 
@@ -247,11 +265,8 @@ function CatModal({ cat, onClose, onSave }) {
         </div>
         <div style={{ padding: '16px 20px', display: 'flex', flexDirection: 'column', gap: 12 }}>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-            <label style={{ fontSize: 11, color: 'var(--text-muted)', fontFamily: 'var(--font-mono)', textTransform: 'uppercase' }}>Icon & Name</label>
-            <div style={{ display: 'flex', gap: 8 }}>
-              <input className="input" style={{ width: 56 }} value={form.icon} onChange={e => f('icon', e.target.value)} />
-              <input className="input" value={form.name} onChange={e => f('name', e.target.value)} placeholder="Category name" />
-            </div>
+            <label style={{ fontSize: 11, color: 'var(--text-muted)', fontFamily: 'var(--font-mono)', textTransform: 'uppercase' }}>Category Name</label>
+            <input className="input" value={form.name} onChange={e => f('name', e.target.value)} placeholder="e.g. Beverages" required />
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
             <label style={{ fontSize: 11, color: 'var(--text-muted)', fontFamily: 'var(--font-mono)', textTransform: 'uppercase' }}>Color</label>

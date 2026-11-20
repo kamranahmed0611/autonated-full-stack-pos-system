@@ -1,7 +1,7 @@
 {
-  "name": "supermart-pos-frontend",
+  "name": "automated-full-stack-pos-frontend",
   "version": "1.0.0",
-  "description": "SuperMart POS System - Frontend",
+  "description": "Automated Full Stack POS System - Frontend",
   "private": true,
   "scripts": {
     "dev": "vite",

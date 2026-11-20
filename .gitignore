@@ -1,17 +1,36 @@
 # Node modules
 node_modules/
+backend/node_modules/
+frontend/node_modules/
 
 # Environment files
 backend/.env
 frontend/.env
 .env
+*.env.local
 
 # Local database
-backend/db/
+backend/db/*.db
+backend/db/*.db-journal
+backend/db/*.db-wal
+backend/db/*.db-shm
+*.sqlite
+*.sqlite3
 
 # Build outputs
 frontend/dist/
+dist/
+build/
 
-# Editor files
+# Binaries and large packages
+*.exe
+*.msi
+*.zip
+*.tar.gz
+
+# Editor files & OS metadata
 .vscode/
+.idea/
 *.log
+.DS_Store
+Thumbs.db

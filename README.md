@@ -1,20 +1,43 @@
-# 🏪 SuperMart POS System
+# 🏪 Automated Full Stack POS System
 
-A full-featured, production-ready Point-of-Sale system for retail stores.
+A high-performance, production-ready, automated Point-of-Sale and ERP system for modern retail, mart, and grocery businesses.
 Built with **React + Vite** (frontend) and **Node.js + Express + SQLite** (backend).
 
 ---
 
-## ✨ Features
+## ✨ Features & Architecture
 
 | Module | Features |
 |---|---|
-| **POS Terminal** | Product grid, barcode search, cart, discounts, multi-payment, receipt |
-| **Inventory** | Stock levels, low-stock alerts, stock adjustments, product CRUD |
-| **Customers** | Customer profiles, purchase history, loyalty points, credit limits |
-| **Reports** | Daily/monthly analytics, revenue charts, top products, payment breakdown |
-| **Settings** | Store info, user management (roles), categories, receipt customization |
-| **Auth** | JWT login, role-based access (Admin / Manager / Cashier) |
+| **POS Terminal** | Rapid keyboard-first billing, optical barcode scanner, 4 concurrent holding carts, line discounts, multi-payment split (Cash, Card, Raast, Khata), receipt printing |
+| **Loose Goods Engine** | Dual-unit ratio conversion (e.g. 50kg bag → 1kg, 30-egg tray → 1 egg), decimal weights, continuous decrement |
+| **Cash Rounding Engine** | Pakistan legal tender nearest Rs. 5 round-off computation with auditable rounding concession ledger |
+| **Customer Khata** | Double-entry customer credit ledger, balance limits, repayments, settlements, and PDF statement generation |
+| **Supplier & Vendor Ledger** | Procurement receiving, handwritten parchi reconciliation, wapsi / damage claims, and Kasar concession audit |
+| **Blind Shift Close** | Double-blind physical cash counting protocol with automatic variance audit (overage/shortage tracking) |
+| **Emergency Backdated Bills** | Backdated digital bill generator for inventory handover and backlog processing without stock distortion |
+| **Inventory Master** | Inflation-resistant weighted moving average costing, low-stock threshold alerts, single-item restocking |
+| **Financial Reports** | Gross margin audits, Cost of Goods Sold (COGS), category tax audits, petty expense tracking |
+| **Auth & Security** | JWT authentication, bcrypt passwords, role-based access control (Admin, Manager, Cashier), Helmet security headers |
+
+---
+
+## 🧪 Automated Test Suite
+
+The system includes an automated fusion test suite verifying business mathematics, cash rounding, inventory decrements, and double-entry accounting:
+
+```bash
+cd backend
+npm run test:fusion
+```
+
+All 6 test cases pass out-of-the-box:
+- [PASS] TC-01: Barcode Lookup & Loose Good Ratio Validation
+- [PASS] TC-02: Loose Good Inventory Decrement (e.g. 3.5 kg from 50kg bag)
+- [PASS] TC-03: Nearest Rs. 5 Cash Rounding Engine
+- [PASS] TC-04: Customer Khata Double-Entry Ledger
+- [PASS] TC-05: Blind Shift Close Protocol & Variance Audit
+- [PASS] TC-06: Vendor Kasar / Settlement Concession Ledger
 
 ---
 

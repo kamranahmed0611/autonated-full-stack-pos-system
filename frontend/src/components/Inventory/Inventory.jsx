@@ -89,7 +89,7 @@ export default function Inventory() {
         </div>
         <select className="input" style={{ width: 160 }} value={filterCat} onChange={e => setFilterCat(e.target.value)}>
           <option value="">All Categories</option>
-          {categories.map(c => <option key={c.id} value={c.id}>{c.icon} {c.name}</option>)}
+          {categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
         </select>
         <select className="input" style={{ width: 140 }} value={filterStock} onChange={e => setFilterStock(e.target.value)}>
           <option value="">All Stock</option>
@@ -129,7 +129,13 @@ export default function Inventory() {
                   <tr key={p.id}>
                     <td>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                        <span style={{ fontSize: 18 }}>{p.icon}</span>
+                        <div style={{
+                          width: 28, height: 28, borderRadius: 6, background: 'var(--bg-elevated)',
+                          border: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                          flexShrink: 0
+                        }}>
+                          <i className={p.is_weighable ? "ti ti-scale" : p.is_loose ? "ti ti-grain" : "ti ti-package"} style={{ color: 'var(--amber)', fontSize: 14 }} />
+                        </div>
                         <div>
                           <div style={{ fontWeight: 500 }}>{p.name}</div>
                           <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>{p.unit}</div>
@@ -139,7 +145,7 @@ export default function Inventory() {
                     <td><span className="mono text-xs" style={{ color: 'var(--text-muted)' }}>{p.barcode}</span></td>
                     <td>
                       <span style={{ fontSize: 12 }}>
-                        {p.category_icon} {p.category_name}
+                        {p.category_name}
                       </span>
                     </td>
                     <td><span className="mono" style={{ fontSize: 13 }}>{fmt(p.price)}</span></td>
@@ -183,16 +189,25 @@ function ProductModal({ product, categories, onClose, onSave }) {
   const isEdit = !!product
   const [form, setForm] = useState({
     barcode: product?.barcode || '',
+    sku: product?.sku || '',
     name: product?.name || '',
     category_id: product?.category_id || categories[0]?.id || '',
     price: product?.price || '',
     cost: product?.cost || '',
-    tax_rate: product?.tax_rate ?? 17,
+    tax_rate: product?.tax_rate ?? 0,
     stock: product?.stock || 0,
     min_stock: product?.min_stock || 5,
     unit: product?.unit || 'pcs',
-    icon: product?.icon || '📦',
+    icon: product?.icon || '',
     active: product?.active ?? 1,
+
+    // Fusion: Loose Commodity & Scale Attributes
+    is_weighable: product?.is_weighable ?? 0,
+    is_loose: product?.is_loose ?? 0,
+    base_unit: product?.base_unit || '',
+    sale_unit: product?.sale_unit || '',
+    unit_conversion_ratio: product?.unit_conversion_ratio || 1.0,
+    subunit_sale_price: product?.subunit_sale_price || '',
   })
   const [saving, setSaving] = useState(false)
 
@@ -212,31 +227,76 @@ function ProductModal({ product, categories, onClose, onSave }) {
 
   return (
     <div style={overlayStyle} onClick={e => e.target === e.currentTarget && onClose()}>
-      <div style={modalStyle} className="animate-fade">
+      <div style={{ ...modalStyle, width: 500, maxHeight: '90vh' }} className="animate-fade">
         <div style={modalHeader}>
-          <h3 style={{ fontFamily: 'var(--font-display)' }}>{isEdit ? 'Edit Product' : 'Add Product'}</h3>
+          <h3 style={{ fontFamily: 'var(--font-display)', margin: 0 }}>{isEdit ? 'Edit Product' : 'Add Product'}</h3>
           <button onClick={onClose} className="btn btn-ghost btn-sm btn-icon"><i className="ti ti-x" /></button>
         </div>
-        <div style={{ padding: '16px 20px', display: 'flex', flexDirection: 'column', gap: 12, overflowY: 'auto', maxHeight: 480 }}>
-          <Row label="Icon & Name">
-            <div style={{ display: 'flex', gap: 8 }}>
-              <input className="input" style={{ width: 60 }} value={form.icon} onChange={e => f('icon', e.target.value)} placeholder="📦" />
-              <input className="input" value={form.name} onChange={e => f('name', e.target.value)} placeholder="Product name" />
-            </div>
-          </Row>
-          <Row label="Barcode"><input className="input mono" value={form.barcode} onChange={e => f('barcode', e.target.value)} placeholder="BAS5001" /></Row>
-          <Row label="Category">
-            <select className="input" value={form.category_id} onChange={e => f('category_id', e.target.value)}>
-              {categories.map(c => <option key={c.id} value={c.id}>{c.icon} {c.name}</option>)}
-            </select>
+        <div style={{ padding: '16px 20px', display: 'flex', flexDirection: 'column', gap: 10, overflowY: 'auto', maxHeight: '70vh' }}>
+          <Row label="Product Name">
+            <input className="input" value={form.name} onChange={e => f('name', e.target.value)} placeholder="e.g. Super Kernel Basmati Rice 5kg" required />
           </Row>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
-            <Row label="Selling Price"><input className="input" type="number" value={form.price} onChange={e => f('price', parseFloat(e.target.value))} /></Row>
-            <Row label="Cost Price"><input className="input" type="number" value={form.cost} onChange={e => f('cost', parseFloat(e.target.value))} /></Row>
+            <Row label="Barcode"><input className="input mono" value={form.barcode} onChange={e => f('barcode', e.target.value)} placeholder="89640001001" required /></Row>
+            <Row label="SKU / Item Code"><input className="input mono" value={form.sku} onChange={e => f('sku', e.target.value)} placeholder="SKU-1001" /></Row>
+          </div>
+          <Row label="Category">
+            <select className="input" value={form.category_id} onChange={e => f('category_id', e.target.value)}>
+              {categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+            </select>
+          </Row>
+
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+            <Row label="Selling Price (Rs.)"><input className="input" type="number" value={form.price} onChange={e => f('price', parseFloat(e.target.value))} required /></Row>
+            <Row label="Cost Price (Rs.)"><input className="input" type="number" value={form.cost} onChange={e => f('cost', parseFloat(e.target.value))} /></Row>
             <Row label="Tax Rate %"><input className="input" type="number" value={form.tax_rate} onChange={e => f('tax_rate', parseFloat(e.target.value))} /></Row>
             <Row label="Unit"><input className="input" value={form.unit} onChange={e => f('unit', e.target.value)} placeholder="pcs" /></Row>
-            {!isEdit && <Row label="Opening Stock"><input className="input" type="number" value={form.stock} onChange={e => f('stock', parseInt(e.target.value))} /></Row>}
-            <Row label="Min Stock Alert"><input className="input" type="number" value={form.min_stock} onChange={e => f('min_stock', parseInt(e.target.value))} /></Row>
+            {!isEdit && <Row label="Opening Stock"><input className="input" type="number" value={form.stock} onChange={e => f('stock', parseFloat(e.target.value))} /></Row>}
+            <Row label="Min Stock Alert"><input className="input" type="number" value={form.min_stock} onChange={e => f('min_stock', parseFloat(e.target.value))} /></Row>
+          </div>
+
+          {/* Fusion Extensions: Loose Commodity & Scale Produce */}
+          <div style={{ background: 'var(--bg-elevated)', padding: '10px 14px', borderRadius: 8, border: '1px solid var(--border-md)', marginTop: 4 }}>
+            <div style={{ display: 'flex', gap: 16, marginBottom: 8 }}>
+              <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, cursor: 'pointer' }}>
+                <input
+                  type="checkbox"
+                  checked={Boolean(form.is_loose)}
+                  onChange={e => f('is_loose', e.target.checked ? 1 : 0)}
+                />
+                <span style={{ fontWeight: 600, color: 'var(--amber)' }}>Loose Bulk Commodity (Dual-Unit)</span>
+              </label>
+
+              <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, cursor: 'pointer' }}>
+                <input
+                  type="checkbox"
+                  checked={Boolean(form.is_weighable)}
+                  onChange={e => f('is_weighable', e.target.checked ? 1 : 0)}
+                />
+                <span style={{ fontWeight: 600, color: 'var(--emerald)' }}>Weighable Produce (Scale)</span>
+              </label>
+            </div>
+
+            {Boolean(form.is_loose) && (
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginTop: 8, paddingTop: 8, borderTop: '1px dashed var(--border-md)' }}>
+                <div>
+                  <label style={{ fontSize: 10, color: 'var(--text-muted)', textTransform: 'uppercase' }}>Wholesale Base Unit</label>
+                  <input className="input input-sm" placeholder="e.g. Bag / بوری" value={form.base_unit} onChange={e => f('base_unit', e.target.value)} />
+                </div>
+                <div>
+                  <label style={{ fontSize: 10, color: 'var(--text-muted)', textTransform: 'uppercase' }}>Retail Sub-Unit</label>
+                  <input className="input input-sm" placeholder="e.g. kg / کلو" value={form.sale_unit} onChange={e => f('sale_unit', e.target.value)} />
+                </div>
+                <div>
+                  <label style={{ fontSize: 10, color: 'var(--text-muted)', textTransform: 'uppercase' }}>Units per Base Unit (Ratio)</label>
+                  <input className="input input-sm" type="number" placeholder="50.0" value={form.unit_conversion_ratio} onChange={e => f('unit_conversion_ratio', parseFloat(e.target.value) || 1)} />
+                </div>
+                <div>
+                  <label style={{ fontSize: 10, color: 'var(--text-muted)', textTransform: 'uppercase' }}>Retail Sub-Unit Price (Rs.)</label>
+                  <input className="input input-sm" type="number" placeholder="145.0" value={form.subunit_sale_price} onChange={e => f('subunit_sale_price', parseFloat(e.target.value) || 0)} />
+                </div>
+              </div>
+            )}
           </div>
         </div>
         <div style={{ padding: '12px 20px', borderTop: '1px solid var(--border)', display: 'flex', gap: 8 }}>
@@ -277,7 +337,10 @@ function StockAdjustModal({ product, onClose, onSave }) {
         </div>
         <div style={{ padding: '16px 20px', display: 'flex', flexDirection: 'column', gap: 12 }}>
           <div style={{ padding: 12, background: 'var(--bg-elevated)', borderRadius: 8 }}>
-            <div style={{ fontWeight: 500 }}>{product.icon} {product.name}</div>
+            <div style={{ fontWeight: 500, display: 'flex', alignItems: 'center', gap: 6 }}>
+              <i className="ti ti-package" style={{ color: 'var(--amber)' }} />
+              {product.name}
+            </div>
             <div style={{ color: 'var(--text-muted)', fontSize: 12, marginTop: 2 }}>Current Stock: <strong style={{ color: 'var(--text-primary)' }}>{product.stock} {product.unit}</strong></div>
           </div>
           <Row label="Adjustment Type">
